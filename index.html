@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Els Éssers Vius - Medi 5è de Primària</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap');
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0fdf4;
+        }
+        h1, h2, h3, .font-heading {
+            font-family: 'Fredoka', cursive;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- DADES DELS JOCS I QÜESTIONARI AMPLIAT ---
+        const CELL_PARTS = [
+            {
+                id: 'nucli',
+                name: 'Nucli',
+                color: 'bg-purple-600',
+                textColor: 'text-purple-900',
+                borderColor: 'border-purple-300',
+                desc: 'És el centre de control de la cèl·lula. Dirigeix tot el seu funcionament i conté la informació genètica (ADN).'
+            },
+            {
+                id: 'membrana',
+                name: 'Membrana Cel·lular',
+                color: 'bg-emerald-600',
+                textColor: 'text-emerald-900',
+                borderColor: 'border-emerald-300',
+                desc: 'És la coberta fina i permeable que envolta la cèl·lula. Protegeix el seu interior i regula el pas de substàncies i aigua.'
+            },
+            {
+                id: 'citoplasma',
+                name: 'Citoplasma',
+                color: 'bg-amber-500',
+                textColor: 'text-amber-900',
+                borderColor: 'border-amber-300',
+                desc: 'És un líquid gelatinós format per aigua i substàncies dissoltes que omple l\'interior cel·lular i conté els orgànuls.'
+            },
+            {
+                id: 'organuls',
+                name: 'Orgànuls',
+                color: 'bg-blue-500',
+                textColor: 'text-blue-900',
+                borderColor: 'border-blue-300',
+                desc: 'Són petites estructures contingudes al citoplasma especialitzades a fer tasques específiques, com obtenir energia o fabricar matèria.'
+            }
+        ];
+
+        const KINGDOM_ITEMS = [
+            { id: 1, name: "Àliga imperial", kingdom: "Animals", icon: "fa-crow", desc: "Organisme pluricel·lular heteròtrof que es desplaça i capta informació amb els sentits." },
+            { id: 2, name: "Pi blanc", kingdom: "Plantes", icon: "fa-tree", desc: "Organisme pluricel·lular autòtrof que fa la fotosíntesi i no es desplaça." },
+            { id: 3, name: "Xampinyó", kingdom: "Fongs", icon: "fa-disease", desc: "Fong pluricel·lular heteròtrof. El bolet és la seva estructura reproductora." },
+            { id: 4, name: "Ameba", kingdom: "Protoctists", icon: "fa-bacteria", desc: "Protozou unicel·lular i heteròtrof del regne Protoctists." },
+            { id: 5, name: "Bacteri E. coli", kingdom: "Bacteris", icon: "fa-vial", desc: "L'ésser viu més senzill i petit. Unicel·lular sense nucli definit." },
+            { id: 6, name: "Alga Acetabulària", kingdom: "Protoctists", icon: "fa-umbrella", desc: "Alga unicel·lular autòtrofa visible a simple vista amb forma de paraigua." },
+            { id: 7, name: "Llevat del pa", kingdom: "Fongs", icon: "fa-bread-slice", desc: "Fong unicel·lular utilitzat en l'elaboració del pa i la cervesa." },
+            { id: 8, name: "Floridura de la taronja", kingdom: "Fongs", icon: "fa-cube", desc: "Fong pluricel·lular que creix sobre fruita en descomposició." },
+            { id: 9, name: "Dofí mular", kingdom: "Animals", icon: "fa-fish", desc: "Mamífer marí pluricel·lular que respira per pulmons i és heteròtrof." },
+            { id: 10, name: "Lactobacil del iogurt", kingdom: "Bacteris", icon: "fa-vial", desc: "Bacteri unicel·lular beneficiós utilitzat per fer productes lactis." }
+        ];
+
+        const QUIZ_QUESTIONS = [
+            {
+                id: 1,
+                question: "Quines són les tres funcions vitals que realitzen tots els éssers vius?",
+                options: [
+                    "Nutrició, relació i reproducció",
+                    "Respirar, caminar i menjar",
+                    "Nàixer, créixer i morir",
+                    "Alimentar-se, dormir i moure's"
+                ],
+                correct: 0,
+                explanation: "Tots els éssers vius realitzen les tres funcions vitals: nutrició (obtenir energia i substàncies), relació (captar informació de l'entorn i respondre) i reproducció (tenir descendents)."
+            },
+            {
+                id: 2,
+                question: "Per què un elefant és molt més gran que un ratolí?",
+                options: [
+                    "Perquè les cèl·lules de l'elefant són molt més grans",
+                    "Perquè té un nombre molt més elevat de cèl·lules",
+                    "Perquè les seves cèl·lules tenen 2 nuclis",
+                    "Perquè està format per teixits sense cèl·lules"
+                ],
+                correct: 1,
+                explanation: "La diferència de mida entre un animal gran i un de petit no es deu a la mida de les cèl·lules, sinó a la quantitat total de cèl·lules que té l'organisme."
+            },
+            {
+                id: 3,
+                question: "Quina part de la cèl·lula controla i dirigeix el seu funcionament correcte?",
+                options: [
+                    "La membrana",
+                    "El citoplasma",
+                    "El nucli",
+                    "Els orgànuls"
+                ],
+                correct: 2,
+                explanation: "El nucli és el centre de control de la cèl·lula: dirigeix totes les activitats i funcions cel·lulars."
+            },
+            {
+                id: 4,
+                question: "Com és la membrana cel·lular i quina és la seva funció?",
+                options: [
+                    "És una capa totalment impermeable que aïlla la cèl·lula",
+                    "És un embolcall permeable que permet l'intercanvi d'aigua i substàncies",
+                    "És el líquid on s'emmagatzemen els orgànuls",
+                    "És la part encarregada de fabricar l'aliment de la cèl·lula"
+                ],
+                correct: 1,
+                explanation: "La membrana embolcalla la cèl·lula i té permeabilitat, la qual cosa permet intercanviar aigua i nutrients amb l'exterior."
+            },
+            {
+                id: 5,
+                question: "Quin ordre segueixen els nivells d'organització dels éssers pluricel·lulars (de més senzill a més complex)?",
+                options: [
+                    "Cèl·lula → Teixit → Òrgan → Sistema o Aparell → Organisme",
+                    "Cèl·lula → Òrgan → Teixit → Organisme → Sistema",
+                    "Teixit → Cèl·lula → Òrgan → Aparell → Organisme",
+                    "Organisme → Sistema → Òrgan → Teixit → Cèl·lula"
+                ],
+                correct: 0,
+                explanation: "Les cèl·lules s'agrupen formant teixits; els teixits formen òrgans; els òrgans s'organitzen en sistemes o aparells; i el conjunt de tots forma l'organisme."
+            },
+            {
+                id: 6,
+                question: "A quin regne pertanyen els llevats, les floridures i els bolets?",
+                options: [
+                    "Regne de les Plantes",
+                    "Regne dels Fongs",
+                    "Regne dels Protoctists",
+                    "Regne dels Bacteris"
+                ],
+                correct: 1,
+                explanation: "Tots pertanyen al Regne dels Fongs. Cal recordar que no es desplacen ni fabriquen el seu propi aliment (són heteròtrofs)."
+            },
+            {
+                id: 7,
+                question: "Què és realment un bolet que trobem al bosc?",
+                options: [
+                    "El fong sencer amb la seva arrel i tija",
+                    "Una planta especial sense flors",
+                    "Només l'estructura reproductora temporal del fong",
+                    "Un protozou pluricel·lular gegant"
+                ],
+                correct: 2,
+                explanation: "El bolet és únicament la part reproductora temporal del fong. El fong real és l'estructura de filaments (miceli) que creix sota terra."
+            },
+            {
+                id: 8,
+                question: "Quins dos tipus d'éssers vius formen el Regne dels Protoctists?",
+                options: [
+                    "Els bacteris i els virus",
+                    "Els protozous i les algues",
+                    "Els llevats i les floridures",
+                    "Les plantes marines i els peixos"
+                ],
+                correct: 1,
+                explanation: "El regne dels Protoctists inclou els protozous (unicel·lulars heteròtrofs com l'ameba) i les algues (unicel·lulars o pluricel·lulars autòtrofes)."
+            },
+            {
+                id: 9,
+                question: "Quina característica sorprenent té l'alga anomenada Acetabulària?",
+                options: [
+                    "És un bacteri que fa la fotosíntesi a la foscor",
+                    "És pluricel·lular i mesura més de 20 metres",
+                    "És una alga unicel·lular amb forma de paraigua visible a simple vista",
+                    "És un fong que viu dins de les neurones de les balenes"
+                ],
+                correct: 2,
+                explanation: "L'Acetabulària és un cas molt especial d'alga unicel·lular: té forma de paraigua i es pot veure a simple vista sense microscopi!"
+            },
+            {
+                id: 10,
+                question: "Quines són les característiques principals dels bacteris?",
+                options: [
+                    "Són els éssers vius més petits, simples i tots són unicel·lulars",
+                    "Són pluricel·lulars i fabriquen el seu propi aliment amb flors",
+                    "Pertanyen al regne dels fongs i tenen cervell",
+                    "Són organismes pluricel·lulars que només viuen al mar"
+                ],
+                correct: 0,
+                explanation: "Els bacteris formen el regne dels bacteris; són els éssers vius més petits, senzills i primitius de la Terra, i tots estan formats per una sola cèl·lula."
+            },
+            {
+                id: 11,
+                question: "Com capten la informació de l'exterior els animals durant la funció de relació?",
+                options: [
+                    "Mitjançant els òrgans dels sentits",
+                    "Fabricant el seu propi aliment al citoplasma",
+                    "Utilitzant la membrana impermeable cel·lular",
+                    "A través de les arrels i les fulles"
+                ],
+                correct: 0,
+                explanation: "Els animals capten els estímuls i la informació de l'exterior mitjançant els òrgans dels sentits (vista, oïda, olfacte, gust, tacte)."
+            },
+            {
+                id: 12,
+                question: "Quina diferència principal hi ha entre el Regne dels Animals i el Regne de les Plantes?",
+                options: [
+                    "Els animals són unicel·lulars i les plantes pluricel·lulars",
+                    "Els animals prenen aliments i es desplacen; les plantes elaboren el seu aliment i no es desplacen",
+                    "Les plantes tenen òrgans dels sentits i els animals fan la fotosíntesi",
+                    "No hi ha cap diferència, tots dos regnes són idèntics"
+                ],
+                correct: 1,
+                explanation: "Els animals tenen nutrició heteròtrofa i es desplacen, mentre que les plantes fabriquen el seu aliment mitjançant la fotosíntesi (autòtrofes) i estan fixes al sòl."
+            },
+            {
+                id: 13,
+                question: "Quin instrument és imprescindible per poder observar les cèl·lules dels éssers vius?",
+                options: [
+                    "Un microscopi",
+                    "Un telescopi",
+                    "Una lupa d'augment bàsica",
+                    "Un periscopi"
+                ],
+                correct: 0,
+                explanation: "La majoria de les cèl·lules són extraordinàriament petites i només es poden veure utilitzant un microscopi."
+            },
+            {
+                id: 14,
+                question: "Com s'anomenen els organismes que fan la fotosíntesi per fabricar el seu propi aliment?",
+                options: [
+                    "Autòtrofs",
+                    "Heteròtrofs",
+                    "Bacterians",
+                    "Paràsits"
+                ],
+                correct: 0,
+                explanation: "Els éssers autòtrofs (com les plantes i les algues) elaboren la seva pròpia matèria orgànica mitjançant la fotosíntesi."
+            },
+            {
+                id: 15,
+                question: "Quin tipus de fongs són els llevats que s'utilitzen per fer pa o cervesa?",
+                options: [
+                    "Fongs unicel·lulars",
+                    "Fongs pluricel·lulars amb bolet",
+                    "Bacteris fotosintètics",
+                    "Algues marines pluricel·lulars"
+                ],
+                correct: 0,
+                explanation: "Els llevats són fongs microscòpics unicel·lulars molt útils en l'alimentació humana."
+            },
+            {
+                id: 16,
+                question: "Què és un teixit en un ésser pluricel·lular?",
+                options: [
+                    "Una agrupació de cèl·lules similars especialitzades a fer una mateixa funció",
+                    "Un conjunt d'òrgans diferents treballant junts",
+                    "El líquid gelatinós que hi ha dins de la cèl·lula",
+                    "L'embolcall de protecció que envolta el nucli"
+                ],
+                correct: 0,
+                explanation: "Un teixit està format per la unió de moltes cèl·lules especialitzades del mateix tipus (per exemple, el teixit muscular o el teixit nerviós)."
+            },
+            {
+                id: 17,
+                question: "On es troben situats els orgànuls cel·lulars?",
+                options: [
+                    "A dins del citoplasma",
+                    "A l'exterior de la membrana",
+                    "A l'interior de la paret de fusta",
+                    "Dins del nucli exclusivament"
+                ],
+                correct: 0,
+                explanation: "El citoplasma és el medi líquid on s'allotgen els diferents orgànuls cel·lulars."
+            },
+            {
+                id: 18,
+                question: "Quina d'aquestes opcions descriu correctament els éssers unicel·lulars?",
+                options: [
+                    "Estan formats per una única cèl·lula que realitza totes les funcions vitals",
+                    "Són organismes formats per milions de cèl·lules organitzades en teixits",
+                    "Són animals grans com la balena o l'elefant",
+                    "Són éssers que no tenen cèl·lules ni citoplasma"
+                ],
+                correct: 0,
+                explanation: "Els éssers unicel·lulars consten d'una sola cèl·lula autosuficient capaç de llevar a terme les 3 funcions vitals."
+            },
+            {
+                id: 19,
+                question: "Quines substàncies trobem principalment contingudes dins del citoplasma?",
+                options: [
+                    "Aigua amb nombroses substàncies dissoltes",
+                    "Aire i gasos purs sense líquid",
+                    "Pedres microscòpiques i sorra",
+                    "Només sang i oli"
+                ],
+                correct: 0,
+                explanation: "El citoplasma és una substància gelatinosa formada principalment per aigua i nutrients dissolts."
+            },
+            {
+                id: 20,
+                question: "Què són les floridures que apareixen als aliments en mal estat?",
+                options: [
+                    "Fongs pluricel·lulars",
+                    "Plantes sense fulles",
+                    "Protozous gegants",
+                    "Bacteris autòtrofs"
+                ],
+                correct: 0,
+                explanation: "Les floridures són fongs pluricel·lulars que creixen sobre matèria orgànica humida o aliments en descomposició."
+            }
+        ];
+
+        // Funció per barrejar un array (Fisher-Yates Shuffle)
+        const shuffleArray = (array) => {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        };
+
+        // Funció per preparar les preguntes barrejades i amb respostes en posicions canviants
+        const prepareQuestions = (questionsPool) => {
+            const shuffledQ = shuffleArray(questionsPool);
+            return shuffledQ.map(q => {
+                const correctText = q.options[q.correct];
+                const shuffledOptions = shuffleArray(q.options);
+                const newCorrectIndex = shuffledOptions.indexOf(correctText);
+                return {
+                    ...q,
+                    options: shuffledOptions,
+                    correct: newCorrectIndex
+                };
+            });
+        };
+
+        // --- COMPONENT: QUIZ / TEST INTERACTIU ---
+        function QuizSection() {
+            const [questions, setQuestions] = useState([]);
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [selectedOption, setSelectedOption] = useState(null);
+            const [isSubmitted, setIsSubmitted] = useState(false);
+            const [score, setScore] = useState(0);
+            const [quizCompleted, setQuizCompleted] = useState(false);
+
+            // Carrega inicial amb desordre de preguntes i opcions
+            useEffect(() => {
+                setQuestions(prepareQuestions(QUIZ_QUESTIONS));
+            }, []);
+
+            const q = questions[currentIndex];
+
+            const handleOptionSelect = (index) => {
+                if (isSubmitted) return;
+                setSelectedOption(index);
+            };
+
+            const handleCheck = () => {
+                if (selectedOption === null) return;
+                setIsSubmitted(true);
+                if (selectedOption === q.correct) {
+                    setScore(prev => prev + 1);
+                }
+            };
+
+            const handleNext = () => {
+                setSelectedOption(null);
+                setIsSubmitted(false);
+                if (currentIndex + 1 < questions.length) {
+                    setCurrentIndex(prev => prev + 1);
+                } else {
+                    setQuizCompleted(true);
+                }
+            };
+
+            const handleRestart = () => {
+                // Genera un nou ordre completament aleatori de preguntes i opcions
+                setQuestions(prepareQuestions(QUIZ_QUESTIONS));
+                setCurrentIndex(0);
+                setSelectedOption(null);
+                setIsSubmitted(false);
+                setScore(0);
+                setQuizCompleted(false);
+            };
+
+            if (!q || questions.length === 0) return null;
+
+            if (quizCompleted) {
+                const percentage = Math.round((score / questions.length) * 100);
+                return (
+                    <div className="bg-white rounded-3xl p-8 shadow-md border-2 border-emerald-200 text-center max-w-2xl mx-auto animate-fade-in">
+                        <div className="w-24 h-24 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-4xl mb-4">
+                            {percentage >= 70 ? '🎉' : '📚'}
+                        </div>
+                        <h2 className="text-3xl font-bold text-slate-800">Resultat del Test</h2>
+                        <p className="text-lg text-slate-600 mt-2">
+                            Has encertat <span className="font-bold text-emerald-600">{score}</span> de <span className="font-bold">{questions.length}</span> preguntes (<span className="font-bold">{percentage}%</span>).
+                        </p>
+
+                        <div className="my-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm md:text-base">
+                            {percentage >= 90 && "Carai! Et saps la Unitat 1 a la perfecció! Un autèntic expert en biologia!"}
+                            {percentage >= 70 && percentage < 90 && "Molt bona feina! Has après molt bé els conceptes principals dels éssers vius."}
+                            {percentage < 70 && "Bona feina intentant-ho! Et recomanem repassar el resum i tornar-ho a provar."}
+                        </div>
+
+                        <button
+                            onClick={handleRestart}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-2xl transition shadow-lg shadow-emerald-200"
+                        >
+                            <i className="fa-solid fa-rotate-right mr-2"></i> Torna a fer el Test (Noves preguntes i opcions)
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-md border-2 border-emerald-200 max-w-3xl mx-auto">
+                    {/* Progress Bar */}
+                    <div className="flex items-center justify-between text-xs md:text-sm text-slate-500 font-bold mb-3">
+                        <span>Pregunta {currentIndex + 1} de {questions.length}</span>
+                        <span>Puntuació: {score}</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-6">
+                        <div
+                            className="bg-emerald-500 h-full transition-all duration-300"
+                            style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
+                        ></div>
+                    </div>
+
+                    {/* Question */}
+                    <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-6">
+                        {q.question}
+                    </h2>
+
+                    {/* Options */}
+                    <div className="space-y-3 mb-6">
+                        {q.options.map((option, idx) => {
+                            let btnStyle = "border-2 border-slate-200 bg-slate-50 hover:bg-emerald-50 text-slate-700";
+                            if (selectedOption === idx) {
+                                btnStyle = "border-2 border-emerald-500 bg-emerald-50 text-emerald-900 font-semibold";
+                            }
+
+                            if (isSubmitted) {
+                                if (idx === q.correct) {
+                                    btnStyle = "border-2 border-green-500 bg-green-100 text-green-900 font-bold";
+                                } else if (selectedOption === idx && idx !== q.correct) {
+                                    btnStyle = "border-2 border-red-500 bg-red-100 text-red-900 font-bold";
+                                } else {
+                                    btnStyle = "border-2 border-slate-200 bg-slate-50 text-slate-400 opacity-60";
+                                }
+                            }
+
+                            return (
+                                <button
+                                    key={idx}
+                                    onClick={() => handleOptionSelect(idx)}
+                                    disabled={isSubmitted}
+                                    className={`w-full text-left p-4 rounded-2xl transition duration-150 flex items-center justify-between ${btnStyle}`}
+                                >
+                                    <span className="text-sm md:text-base">{option}</span>
+                                    {isSubmitted && idx === q.correct && (
+                                        <i className="fa-solid fa-circle-check text-green-600 text-xl ml-2"></i>
+                                    )}
+                                    {isSubmitted && selectedOption === idx && idx !== q.correct && (
+                                        <i className="fa-solid fa-circle-xmark text-red-600 text-xl ml-2"></i>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Feedback Explanation */}
+                    {isSubmitted && (
+                        <div className={`p-5 rounded-2xl mb-6 border ${
+                            selectedOption === q.correct
+                                ? 'bg-green-50 border-green-300 text-green-900'
+                                : 'bg-amber-50 border-amber-300 text-amber-900'
+                        }`}>
+                            <div className="flex items-center gap-2 font-bold text-base mb-1">
+                                {selectedOption === q.correct ? (
+                                    <>
+                                        <i className="fa-solid fa-circle-check text-green-600"></i>
+                                        <span>Molt bé! Resposta correcta!</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="fa-solid fa-circle-exclamation text-amber-600"></i>
+                                        <span>Vaja, has fallat! Aquí tens la solució:</span>
+                                    </>
+                                )}
+                            </div>
+                            <p className="text-sm md:text-base mt-2 leading-relaxed">
+                                {q.explanation}
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Controls */}
+                    <div className="flex justify-end">
+                        {!isSubmitted ? (
+                            <button
+                                onClick={handleCheck}
+                                disabled={selectedOption === null}
+                                className={`px-6 py-3 rounded-2xl font-bold transition shadow-md ${
+                                    selectedOption === null
+                                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'
+                                }`}
+                            >
+                                Comprovar resposta
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleNext}
+                                className="px-6 py-3 rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-200 transition"
+                            >
+                                {currentIndex + 1 === questions.length ? 'Veure resultats finals' : 'Següent pregunta'} <i className="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // --- COMPONENT: JOC DELS 5 REGNES ---
+        function KingdomsGame() {
+            const kingdoms = ["Animals", "Plantes", "Fongs", "Protoctists", "Bacteris"];
+            const [itemIndex, setItemIndex] = useState(0);
+            const [feedback, setFeedback] = useState(null);
+            const [score, setScore] = useState(0);
+            const [completed, setCompleted] = useState(false);
+
+            const currentItem = KINGDOM_ITEMS[itemIndex];
+
+            const handleGuess = (chosenKingdom) => {
+                if (feedback) return;
+
+                const isCorrect = chosenKingdom === currentItem.kingdom;
+                if (isCorrect) {
+                    setScore(prev => prev + 1);
+                }
+
+                setFeedback({
+                    isCorrect,
+                    chosen: chosenKingdom,
+                    explanation: `${currentItem.name} pertany al regne de les/dels ${currentItem.kingdom}. ${currentItem.desc}`
+                });
+            };
+
+            const handleNext = () => {
+                setFeedback(null);
+                if (itemIndex + 1 < KINGDOM_ITEMS.length) {
+                    setItemIndex(prev => prev + 1);
+                } else {
+                    setCompleted(true);
+                }
+            };
+
+            const handleReset = () => {
+                setItemIndex(0);
+                setFeedback(null);
+                setScore(0);
+                setCompleted(false);
+            };
+
+            if (completed) {
+                return (
+                    <div className="bg-white rounded-3xl p-8 shadow-md border-2 border-emerald-200 text-center max-w-2xl mx-auto">
+                        <div className="text-5xl mb-4">👑</div>
+                        <h2 className="text-3xl font-bold text-slate-800">Classificació Completada!</h2>
+                        <p className="text-lg text-slate-600 mt-2">
+                            Has classificat correctament <span className="font-bold text-emerald-600">{score}</span> de <span className="font-bold">{KINGDOM_ITEMS.length}</span> organismes.
+                        </p>
+                        <button
+                            onClick={handleReset}
+                            className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-2xl transition shadow-lg shadow-emerald-200"
+                        >
+                            Tornar a jugar
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-md border-2 border-emerald-200 max-w-3xl mx-auto text-center">
+                    <div className="inline-block bg-purple-100 text-purple-800 text-xs font-bold px-3 py-1 rounded-full mb-2 uppercase">
+                        Joc de Classificació
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-800 mb-1">
+                        A quin dels 5 Regnes pertany?
+                    </h2>
+                    <p className="text-slate-500 text-sm mb-6">
+                        Organisme {itemIndex + 1} de {KINGDOM_ITEMS.length}
+                    </p>
+
+                    {/* Organism Card */}
+                    <div className="bg-emerald-50 border-2 border-emerald-200 rounded-3xl p-6 mb-8 max-w-md mx-auto shadow-inner">
+                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto text-3xl text-emerald-600 shadow-sm mb-3">
+                            <i className={`fa-solid ${currentItem.icon}`}></i>
+                        </div>
+                        <h3 className="text-2xl font-extrabold text-emerald-900">{currentItem.name}</h3>
+                    </div>
+
+                    {/* Kingdom Buttons */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+                        {kingdoms.map((k) => (
+                            <button
+                                key={k}
+                                onClick={() => handleGuess(k)}
+                                disabled={feedback !== null}
+                                className={`p-3 rounded-2xl font-bold text-sm transition border-2 ${
+                                    feedback && feedback.chosen === k
+                                        ? feedback.isCorrect
+                                            ? 'bg-green-500 text-white border-green-600 shadow-lg'
+                                            : 'bg-red-500 text-white border-red-600 shadow-lg'
+                                        : 'bg-slate-50 hover:bg-emerald-100 border-slate-200 text-slate-700 hover:border-emerald-300'
+                                }`}
+                            >
+                                {k}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Feedback area */}
+                    {feedback && (
+                        <div className={`p-4 rounded-2xl mb-6 text-left border ${
+                            feedback.isCorrect
+                                ? 'bg-green-50 border-green-300 text-green-900'
+                                : 'bg-red-50 border-red-300 text-red-900'
+                        }`}>
+                            <div className="font-bold flex items-center gap-2 mb-1">
+                                {feedback.isCorrect ? (
+                                    <>
+                                        <i className="fa-solid fa-circle-check text-green-600"></i>
+                                        <span>Correcte! Molt bé!</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="fa-solid fa-circle-xmark text-red-600"></i>
+                                        <span>Incorrecte! Solució:</span>
+                                    </>
+                                )}
+                            </div>
+                            <p className="text-sm">{feedback.explanation}</p>
+                            <div className="mt-4 text-right">
+                                <button
+                                    onClick={handleNext}
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-5 py-2 rounded-xl transition"
+                                >
+                                    Següent organisme <i className="fa-solid fa-arrow-right ml-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // --- COMPONENT: EXPLORA LA CÈL·LULA ---
+        function CellExplorer() {
+            const [selectedPart, setSelectedPart] = useState(CELL_PARTS[0]);
+
+            return (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-md border-2 border-emerald-200 max-w-4xl mx-auto">
+                    <h2 className="text-2xl font-bold text-slate-800 text-center mb-2">
+                        🔬 Explorador Interactiu de la Cèl·lula
+                    </h2>
+                    <p className="text-slate-600 text-center text-sm mb-6">
+                        Prem sobre qualsevol part de la cèl·lula per aprendre la seva funció.
+                    </p>
+
+                    <div className="grid md:grid-cols-2 gap-8 items-center">
+                        {/* Cell Visual Diagram */}
+                        <div className="relative w-full aspect-square max-w-sm mx-auto bg-amber-100 rounded-full border-8 border-emerald-500 shadow-inner p-6 flex items-center justify-center overflow-hidden">
+                            {/* Membrana Label */}
+                            <button
+                                onClick={() => setSelectedPart(CELL_PARTS[1])}
+                                className="absolute top-4 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow hover:scale-110 transition z-10"
+                            >
+                                Membrana
+                            </button>
+
+                            {/* Citoplasma Label */}
+                            <button
+                                onClick={() => setSelectedPart(CELL_PARTS[2])}
+                                className="absolute bottom-6 left-8 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow hover:scale-110 transition z-10"
+                            >
+                                Citoplasma
+                            </button>
+
+                            {/* Orgànuls */}
+                            <button
+                                onClick={() => setSelectedPart(CELL_PARTS[3])}
+                                className="absolute top-12 right-12 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow hover:scale-110 transition z-10"
+                            >
+                                Orgànuls
+                            </button>
+
+                            {/* Center Nucli */}
+                            <button
+                                onClick={() => setSelectedPart(CELL_PARTS[0])}
+                                className="w-28 h-28 bg-purple-600 rounded-full flex flex-col items-center justify-center text-white font-bold shadow-lg hover:scale-110 transition border-4 border-purple-300 z-10"
+                            >
+                                <i className="fa-solid fa-atom text-xl mb-1"></i>
+                                <span className="text-xs">Nucli</span>
+                            </button>
+
+                            {/* Decorative Organelles in BG */}
+                            <div className="absolute top-1/4 left-10 w-8 h-4 bg-blue-400 rounded-full rotate-45 opacity-70"></div>
+                            <div className="absolute bottom-1/4 right-12 w-10 h-5 bg-blue-400 rounded-full -rotate-12 opacity-70"></div>
+                            <div className="absolute top-1/3 right-8 w-6 h-6 bg-pink-400 rounded-full opacity-70"></div>
+                        </div>
+
+                        {/* Part Explanation Card */}
+                        <div className={`p-6 rounded-3xl border-2 transition-all ${selectedPart.borderColor} bg-slate-50`}>
+                            <div className="flex items-center gap-3 mb-4">
+                                <span className={`w-4 h-8 rounded-full ${selectedPart.color}`}></span>
+                                <h3 className={`text-2xl font-extrabold ${selectedPart.textColor}`}>
+                                    {selectedPart.name}
+                                </h3>
+                            </div>
+                            <p className="text-slate-700 leading-relaxed text-base md:text-lg">
+                                {selectedPart.desc}
+                            </p>
+
+                            <div className="mt-6 p-4 bg-white rounded-2xl border border-slate-200 text-xs md:text-sm text-slate-500">
+                                💡 <strong>Sabies que?</strong> Les cèl·lules fan les 3 funcions vitals individualment. Per veure-les és imprescindible fer servir un <strong>microscopi</strong>.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // --- COMPONENT: RESUM DE REPÀS ---
+        function SummarySection() {
+            return (
+                <div className="space-y-6 max-w-4xl mx-auto">
+                    {/* Card 1 */}
+                    <div className="bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-200">
+                        <h3 className="text-xl font-bold text-emerald-800 flex items-center gap-2 mb-3">
+                            <i className="fa-solid fa-heart-pulse text-emerald-600"></i> 1. Les 3 Funcions Vitals
+                        </h3>
+                        <div className="grid md:grid-cols-3 gap-4 text-sm">
+                            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                                <h4 className="font-bold text-emerald-900 mb-1">🍎 Nutrició</h4>
+                                <p className="text-slate-600">Obtenir substàncies de l'entorn per créixer i aconseguir energia.</p>
+                            </div>
+                            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                                <h4 className="font-bold text-emerald-900 mb-1">👀 Relació</h4>
+                                <p className="text-slate-600">Captar informació de l'exterior (sentits) i respondre-hi adequadament.</p>
+                            </div>
+                            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                                <h4 className="font-bold text-emerald-900 mb-1">🐣 Reproducció</h4>
+                                <p className="text-slate-600">Permet als éssers vius tenir descendents semblants a ells.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card 2 */}
+                    <div className="bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-200">
+                        <h3 className="text-xl font-bold text-emerald-800 flex items-center gap-2 mb-3">
+                            <i className="fa-solid fa-layer-group text-emerald-600"></i> 2. Nivells d'Organització
+                        </h3>
+                        <p className="text-sm text-slate-600 mb-4">
+                            Els éssers pluricel·lulars tenen milions de cèl·lules agrupades en diferents nivells de complexitat:
+                        </p>
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-center text-xs md:text-sm font-bold text-slate-700">
+                            <div className="bg-purple-100 text-purple-800 p-3 rounded-2xl flex-1 min-w-[100px]">Cèl·lula</div>
+                            <i className="fa-solid fa-chevron-right text-slate-400"></i>
+                            <div className="bg-blue-100 text-blue-800 p-3 rounded-2xl flex-1 min-w-[100px]">Teixit</div>
+                            <i className="fa-solid fa-chevron-right text-slate-400"></i>
+                            <div className="bg-teal-100 text-teal-800 p-3 rounded-2xl flex-1 min-w-[100px]">Òrgan</div>
+                            <i className="fa-solid fa-chevron-right text-slate-400"></i>
+                            <div className="bg-amber-100 text-amber-800 p-3 rounded-2xl flex-1 min-w-[100px]">Sistema / Aparell</div>
+                            <i className="fa-solid fa-chevron-right text-slate-400"></i>
+                            <div className="bg-emerald-100 text-emerald-800 p-3 rounded-2xl flex-1 min-w-[100px]">Organisme</div>
+                        </div>
+                    </div>
+
+                    {/* Card 3 */}
+                    <div className="bg-white rounded-3xl p-6 shadow-md border-2 border-emerald-200">
+                        <h3 className="text-xl font-bold text-emerald-800 flex items-center gap-2 mb-4">
+                            <i className="fa-solid fa-crown text-emerald-600"></i> 3. Els 5 Regnes de la Natura
+                        </h3>
+                        <div className="grid md:grid-cols-2 gap-4 text-sm">
+                            <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50">
+                                <h4 className="font-bold text-slate-800 text-base mb-1">🐾 Regne dels Animals</h4>
+                                <p className="text-slate-600">Pluricel·lulars, heteròtrofs (s'alimenten d'altres) i la majoria es desplacen.</p>
+                            </div>
+                            <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50">
+                                <h4 className="font-bold text-slate-800 text-base mb-1">🌱 Regne de les Plantes</h4>
+                                <p className="text-slate-600">Pluricel·lulars, autòtrofes (fotosíntesi) i no es desplacen.</p>
+                            </div>
+                            <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50">
+                                <h4 className="font-bold text-slate-800 text-base mb-1">🍄 Regne dels Fongs</h4>
+                                <p className="text-slate-600">Unicel·lulars (llevats) o pluricel·lulars (bolets, floridures). Heteròtrofs, no es desplacen.</p>
+                            </div>
+                            <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50">
+                                <h4 className="font-bold text-slate-800 text-base mb-1">🧫 Regne dels Protoctists</h4>
+                                <p className="text-slate-600">Inclou protozous (unicel·lulars heteròtrofs) i algues (unicel·lulars/pluricel·lulars autòtrofes).</p>
+                            </div>
+                            <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 md:col-span-2">
+                                <h4 className="font-bold text-slate-800 text-base mb-1">🧫 Regne dels Bacteris</h4>
+                                <p className="text-slate-600">Els éssers vius més petits, simples i primitius. Tots són unicel·lulars.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // --- COMPONENT PRINCIPAL DE L'APLICACIÓ ---
+        function App() {
+            const [activeTab, setActiveTab] = useState('summary');
+
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+                    {/* Header Nav */}
+                    <header className="bg-emerald-600 text-white shadow-lg sticky top-0 z-50">
+                        <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-white text-xl shadow-inner">
+                                    🌿
+                                </div>
+                                <div>
+                                    <h1 className="text-xl md:text-2xl font-bold tracking-tight">Medi Natural 5è</h1>
+                                    <p className="text-emerald-100 text-xs">Unitat 1: Els Éssers Vius</p>
+                                </div>
+                            </div>
+
+                            {/* Navigation Tabs */}
+                            <nav className="flex flex-wrap gap-1 bg-emerald-700/60 p-1.5 rounded-2xl border border-emerald-500/30">
+                                <button
+                                    onClick={() => setActiveTab('summary')}
+                                    className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold transition ${
+                                        activeTab === 'summary'
+                                            ? 'bg-white text-emerald-800 shadow-md'
+                                            : 'text-emerald-100 hover:bg-emerald-600/50'
+                                    }`}
+                                >
+                                    <i className="fa-solid fa-book-open mr-1"></i> Resum
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('cell')}
+                                    className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold transition ${
+                                        activeTab === 'cell'
+                                            ? 'bg-white text-emerald-800 shadow-md'
+                                            : 'text-emerald-100 hover:bg-emerald-600/50'
+                                    }`}
+                                >
+                                    <i className="fa-solid fa-microscope mr-1"></i> Cèl·lula
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('kingdoms')}
+                                    className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold transition ${
+                                        activeTab === 'kingdoms'
+                                            ? 'bg-white text-emerald-800 shadow-md'
+                                            : 'text-emerald-100 hover:bg-emerald-600/50'
+                                    }`}
+                                >
+                                    <i className="fa-solid fa-crown mr-1"></i> 5 Regnes
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('quiz')}
+                                    className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-bold transition ${
+                                        activeTab === 'quiz'
+                                            ? 'bg-white text-emerald-800 shadow-md'
+                                            : 'text-emerald-100 hover:bg-emerald-600/50'
+                                    }`}
+                                >
+                                    <i className="fa-solid fa-circle-question mr-1"></i> Test
+                                </button>
+                            </nav>
+                        </div>
+                    </header>
+
+                    {/* Main Content Area */}
+                    <main className="max-w-5xl mx-auto px-4 py-8 flex-1 w-full">
+                        {activeTab === 'summary' && <SummarySection />}
+                        {activeTab === 'cell' && <CellExplorer />}
+                        {activeTab === 'kingdoms' && <KingdomsGame />}
+                        {activeTab === 'quiz' && <QuizSection />}
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="bg-slate-800 text-slate-400 py-6 text-center text-xs border-t border-slate-700 mt-12">
+                        <p>© 2026 Recorregut Interactiu de Medi Natural - 5è de Primària</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        // Renderitzat de l'App
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
